@@ -10,22 +10,44 @@ import re
 from scapy.all import *
 import signal
 
-# Function to simulate "hacker" typing effect with random characters
-def effect(text, delay=0.01, hackiness=0.01):
-    for char in text:
-        if char != '\n':  # Skip newlines
-            random_char = random.choice(string.ascii_letters + string.digits)
-            sys.stdout.write(colored(random_char, 'green'))
-            sys.stdout.flush()
-            time.sleep(hackiness)  # Random character delay
-            sys.stdout.write('\b')  # Delete random character
-            sys.stdout.flush()
+# Define the face-like ASCII art (approximation of the Evilginx2 face)
+face_art = [
+    "   _______   ",
+    "  /       \\  ",
+    " /  ### ### \\ ",
+    "|   ### ###  |",
+    "|    ===    |",
+    " \\_________/ "
+]
 
-        sys.stdout.write(colored(char, 'green'))
-        sys.stdout.flush()
-        time.sleep(delay)
-    print()
+# Generate the MOD-TOOLS text using pyfiglet
+welcome_text = pyfiglet.figlet_format("MOD-TOOLS")
 
+# Split the welcome text into lines for combining with the face
+welcome_lines = welcome_text.split('\n')
+
+# Determine the maximum height (number of lines) for the combined display
+max_height = max(len(face_art), len(welcome_lines))
+
+# Pad the shorter art with empty lines to match the height
+face_art += [" " * len(face_art[0])] * (max_height - len(face_art))
+welcome_lines += [" " * len(welcome_lines[0])] * (max_height - len(welcome_lines))
+
+# Combine the face and the welcome text side by side
+combined_art = []
+for i in range(max_height):
+    combined_art.append(face_art[i] + "  " + welcome_lines[i])
+
+# Add the additional lines (Community Edition, author, version, etc.)
+combined_art.append(" " * len(face_art[0]) + "  " + "--- Community Edition ---")
+combined_art.append(" " * len(face_art[0]) + "  " + "by Your Name (@asta)")
+combined_art.append(" " * len(face_art[0]) + "  " + "version 1.0.0")
+
+# Join all lines into a single string
+final_text = '\n'.join(combined_art)
+
+# Print the combined art directly in green without delay
+print(colored(final_text, 'green'))
 # Function to clear the screen
 def clear_screen():
     os.system('cls' if os.name == 'nt' else 'clear')
@@ -48,13 +70,6 @@ def list_wordlists():
                 wordlists.append(file)  # Store only the filename
                 full_paths.append(os.path.join(directory, file))  # Store full path for execution
     return wordlists, full_paths
-
-# Create ASCII art for "Welcome Asta"
-welcome_text = pyfiglet.figlet_format("MOD-TOOLS")
-
-# Display the welcome message in a cool "hacker-style" green text, but faster
-effect(welcome_text, delay=0.005, hackiness=0.005)  # Much faster typing
-
 # Command lists
 main_command_list = ["1. web", "2. forensics", "3. wifi"]
 web_tools_list = ["1. nmap scan", "2. Gobuster", "3. Dirb", "4. FFUF", "5. Dotdotpwn", "6. Searchsploit"]
@@ -75,10 +90,22 @@ while True:
     elif command == 'clear':
         clear_screen()  # Clear the screen when 'clear' is typed
         continue  # Skip the rest of the loop
+    elif command == 'help':
+        help_text = """
+        help  -  to see available commands.
+        list/ls - to list the available commands.
+        clear - to clear the screen
+        back - to go to the previous option. i.e go back.
+        banner - to display the banner.
+        exit - to exit the program.
+        """
+        print(help_text)
+        continue
 
     # Main command list handler
     if current_menu == "main":
-        if command == 'list':
+
+        if command == 'list' or command == 'ls' :
             print(colored("\n".join(main_command_list), 'cyan'))  # Display the main list
         elif command == '1' or command == 'web':
             print(colored("You have selected: Web", 'green'))
@@ -100,7 +127,7 @@ while True:
 
     # Web tools command handler
     elif current_menu == "web_tools":
-        if command == 'list':
+        if command == 'list' or command == 'ls' :
             print(colored("\n".join(web_tools_list), 'cyan'))  # Display the web tools list again
         elif command == 'back':
             print(colored("Returning to main menu...", 'green'))
@@ -189,6 +216,21 @@ while True:
                 print(result.stdout)  # Display the scan results
             except Exception as e:
                 print(colored(f"An error occurred: {str(e)}", 'red'))
+
+        elif command == '6' or command == 'searchsploit':
+            print(colored("You have selected: SearchSploit", 'green'))
+            query = input(colored("Enter search query (e.g., Apache 2.4): ", 'green'))
+
+            # Construct the SearchSploit command
+            searchsploit_command = f"searchsploit {query}"
+            print(colored(f"Searching exploits for '{query}'...", 'green'))
+            try:
+                result = subprocess.run(searchsploit_command, shell=True, capture_output=True, text=True)
+                print(colored("Search results:", 'cyan'))
+                print(result.stdout)  # Display the search results
+            except Exception as e:
+                print(colored(f"An error occurred: {str(e)}", 'red'))
+
         elif command == 'back':
             print(colored("Returning to main menu...", 'green'))
             current_menu = "main"  # Go back to the main menu
@@ -200,7 +242,7 @@ while True:
     # Forensics tools command handler
     # Forensics tools command handler
     elif current_menu == "forensics_tools":
-        if command == 'list':
+        if command == 'list' or command == 'ls' :
             print(colored("\n".join(forensics_tools_list), 'cyan'))  # Display the forensics tools list again
         elif command == '1' or command == 'hashes':  # Handle option '1. Hashes'
             print(colored("You have selected: Hashes", 'green'))
